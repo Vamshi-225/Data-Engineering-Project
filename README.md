@@ -10,48 +10,86 @@ Silver: Cleans and standardizes flight records, derives delay categories, and id
 Gold: Produces aggregated datasets for monthly performance, airline performance, route performance, delay analysis, and data quality monitoring.
 # Architecture
 CSV files
+
    |
+   
    v
 Unity Catalog Volume
+
    |
+   
    v
+   
 BRONZE – AirFlight_Bronze
+
    |  Raw records + source file path + ingestion timestamp
+   
    v
+   
 SILVER – airflight_Silver
+
    |  Standardization, null handling, derived fields,
+   
    |  data quality expectations
+   
    |
+   
    +----> silver_flights_rejected
+   
    |
+   
    v
+   
 GOLD – Business and quality summaries
+
         ├── gold_monthly_flights
+        
         ├── gold_airline_summary
+        
         ├── gold_route_summary
+        
         ├── gold_delay_summary
+        
         └── gold_data_quality
   
 # Repository Structure
+
 AirFlight_SDP_PL/
 │
+
 ├── transformations/
+
 │   └── my_transformation.py
+
 │
+
 ├── Bronze/
+
 │   └── AirFlight_Bronze_PL/
+
 │       └── transformations/
+
 │           └── my_transformation.sql
+
 │
+
 ├── Silver/
+
 │   └── AirFlight_Silver_PL/
+
 │       └── transformations/
+
 │           └── my_transformation.sql
+
 │
 ├── Gold/
+
 │   └── AirFlight_Gold_PL/
+
 │       └── transformations/
+
 │           └── my_transformation.sql
+
 │
 └── manifest.mf
 Pipeline Layers
@@ -77,56 +115,84 @@ The Silver layer transforms Bronze records into standardized flight data.
 # Key transformations:
 
 Trims whitespace and standardizes airline and city names using TRIM and INITCAP.
+
 Replaces missing airline and delay-reason values with default labels.
+
 Calculates missing delay minutes using the difference between actual and scheduled departure timestamps.
+
 Calculates missing ticket revenue using passengers multiplied by average fare.
-Derives a delay_category:
+
+**Derives a delay_category:**
 On Time: delay is 15 minutes or less.
+
 Minor Delay: delay is greater than 15 and up to 60 minutes.
+
 Major Delay: delay is greater than 60 minutes.
+
 Defines data quality expectations for passenger capacity and average fare.
+
 The project also creates silver_flights_rejected to identify records that meet the rejection conditions in its SQL query, including invalid passenger counts and negative average fares.
 
 # 3. Gold Layer – Business Aggregations
 The Gold layer creates materialized views for reporting and analysis.
 
 Table / View	Purpose
+
 gold_monthly_flights	Monthly flight count, passengers, load factor, ticket revenue, and delayed flights.
+
 gold_airline_summary	Airline-level flights, passengers, revenue, load factor, on-time percentage, and average delay.
+
 gold_route_summary	Origin-to-destination route performance, passenger count, revenue, and load factor.
+
 gold_delay_summary	Flight counts and average delay grouped by delay category and reason.
+
 gold_data_quality	Quality metrics, clean-row count, and rejected-row count.
-Data Quality Checks
+
+# Data Quality Checks
 The project includes checks and metrics for:
 
-Passenger count exceeding seat capacity.
+**Passenger count exceeding seat capacity.**
 Duplicate flight IDs.
+
 Missing airline values.
+
 Negative average fares.
+
 Missing delay minutes.
+
 Missing ticket revenue.
+
 Missing delay reasons.
+
 Clean and rejected record counts.
+
 The Silver layer defines expectations for passenger capacity and positive average fare. The Gold gold_data_quality view aggregates quality metrics for monitoring.
 
-Technologies Used
-Databricks
-Lakeflow Spark Declarative Pipelines (SDP)
-Databricks SQL
-Unity Catalog
-Streaming Tables
-Materialized Views
-Medallion Architecture
-SQL
+# Technologies Used
+Databricks,
+Lakeflow Spark Declarative Pipelines (SDP),
+Databricks SQL,
+Unity Catalog,
+Streaming Tables,
+Materialized Views,
+Medallion Architecture,
+SQL.
 
 # Setup and Execution
 Prerequisites
+
 Access to a Databricks workspace.
+
 Permission to create or manage the required pipeline objects.
+
 A Unity Catalog catalog and schema.
+
 Flight operations CSV files uploaded to the configured Volume.
+
 Access to the source Volume path used in the Bronze SQL transformation.
+
 Steps
+
 Upload the flight CSV files to the configured Unity Catalog Volume:
 
 /Volumes/airline_flight_operations_catalog/default/airflight_volume
@@ -143,45 +209,61 @@ Query the Gold views to analyze flight operations and data quality.
 Note: The repository contains transformation files and a manifest. Workspace permissions, source data, catalog objects, and pipeline configuration may need to be set up separately before execution.
 
 # Example Gold-Layer Queries
--- Monthly flight performance
+
+**-- Monthly flight performance**
+
 SELECT *
 FROM gold_monthly_flights
 ORDER BY flight_month;
 
--- Airline performance
+**-- Airline performance**
+
 SELECT *
 FROM gold_airline_summary
 ORDER BY flights DESC;
 
--- Top routes by passenger volume
+**-- Top routes by passenger volume**
+
 SELECT *
 FROM gold_route_summary
 ORDER BY passengers DESC;
 
--- Delay analysis
+**-- Delay analysis**
 SELECT *
 FROM gold_delay_summary
 ORDER BY flights DESC;
 
--- Data quality overview
+**-- Data quality overview**
 SELECT *
 FROM gold_data_quality;
 # Business Outcomes
 **This pipeline helps analyze:**
 
 Monthly airline operational performance.
+
 Airline-wise passenger and revenue contribution.
+
 Popular routes based on passenger volume.
+
 Flight delays and their reported reasons.
+
 Passenger capacity utilization.
+
 Data quality issues and rejected records.
-Future Enhancements
+
+# Future Enhancements
 Add incremental data quality monitoring and alerting.
+
 Add more validation rules for nulls, negative values, and invalid timestamps.
+
 Add pipeline monitoring and failure notifications.
-Connect Gold views to Databricks AI/BI Dashboards or Power BI.
+
+Connect Gold views to Databricks AI/BI Dashboards.
+
 Add more business metrics, such as cancellation rate and route-wise on-time performance, when the required source fields are available.
+
 Author
+
 Kuchani Vamshi
 
 This README documents the transformations present in the supplied project archive. Update the source Volume path, catalog/schema names, and setup steps if your Databricks workspace uses different configurations.
