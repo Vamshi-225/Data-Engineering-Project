@@ -10,13 +10,15 @@ Silver: Cleans and standardizes flight records, derives delay categories, and id
 Gold: Produces aggregated datasets for monthly performance, airline performance, route performance, delay analysis, and data quality monitoring.
 # Architecture
 CSV files
+
    | 
 
 Unity Catalog Volume
-   |
 
+   |
    
 BRONZE – AirFlight_Bronze
+
    |  Raw records + source file path + ingestion timestamp
    
    
