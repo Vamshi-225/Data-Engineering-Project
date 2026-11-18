@@ -11,14 +11,14 @@ Gold: Produces aggregated datasets for monthly performance, airline performance,
 # Architecture
 CSV files
    | 
-   v
+
 Unity Catalog Volume
    |
-   v
+
    
 BRONZE – AirFlight_Bronze
    |  Raw records + source file path + ingestion timestamp
-   v
+   
    
 SILVER – airflight_Silver
 
